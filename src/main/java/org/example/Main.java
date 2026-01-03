@@ -49,7 +49,6 @@ public class Main {
             for(int i = 0; i<dr.getProductsByCriteria(null,null ,null ,null ) .size();i++){
                 System.out.println(dr.getProductsByCriteria(null,null ,null ,null ).get(i).toString());
             }
-
             for(int i = 0; i<dr.getProductsByCriteria(null,null ,null ,null ,1,10) .size();i++){
                 System.out.println(dr.getProductsByCriteria(null,null ,null ,null ,1,10).get(i).toString());
             }
@@ -59,7 +58,6 @@ public class Main {
             for(int i = 0; i<dr.getProductsByCriteria(null,"informatique" ,null ,null ,1,10) .size();i++){
                 System.out.println(dr.getProductsByCriteria(null,"informatique" ,null ,null ,1,10).get(i).toString());
             }
-
         }
         catch (SQLException e){
             e.printStackTrace();
