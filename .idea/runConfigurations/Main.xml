@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="JDBC_URL" value="jdbc:postgresql://localhost:5432/mini_dish_db" />
+      <env name="PASSWORD" value="123456" />
+      <env name="USER" value="mini_dish_db_manager" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="org.example.Main" />
+    <module name="TestJDBC" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="main.example.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
