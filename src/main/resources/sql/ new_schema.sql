@@ -15,3 +15,13 @@ alter table dish drop column price;
 alter table dish add column selling_price numeric (10,2);
 
 alter table ingredient drop column required_quantity;
+
+create type movement_type as enum ('IN','OUT');
+create table StockMovement(
+    id       serial primary key,
+    id_ingredient int references ingredient(id),
+    quantity numeric (10, 2),
+    type movement_type,
+    unit unit_type,
+    creation_datetime timestamp
+);

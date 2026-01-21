@@ -4,7 +4,7 @@ public class Main {
     public static void main(String[] args) {
         // Log before changes
         DataRetriever dataRetriever = new DataRetriever();
-        Dish dish = dataRetriever.findDishById(5
+        Dish dish = dataRetriever.findDishById(2
 
         );
         System.out.println(dish.getGrossMargin());

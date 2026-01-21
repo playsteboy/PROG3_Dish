@@ -1,5 +1,5 @@
 package org.example;
 
-public enum UnitEnum {
+public enum Unit {
     PCS,KG,L
 }
