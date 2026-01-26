@@ -1,13 +1,13 @@
 package org.example;
 
 public class DishIngredient {
-    private int id;
+    private Integer id;
     private  Dish dish;
     private  Ingredient ingredient;
     private Double quantity;
     Unit unit;
 
-    public DishIngredient(int id, Dish dish, Ingredient ingredient, Double quantity, Unit unit) {
+    public DishIngredient(Integer id, Dish dish, Ingredient ingredient, Double quantity, Unit unit) {
         this.id = id;
         this.dish = dish;
         this.ingredient = ingredient;
@@ -15,7 +15,7 @@ public class DishIngredient {
         this.unit = unit;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

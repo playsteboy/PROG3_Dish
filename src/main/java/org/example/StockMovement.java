@@ -3,19 +3,19 @@ package org.example;
 import java.time.Instant;
 
 public class StockMovement {
-    private int id;
+    private Integer id;
     private StockValue value;
     private MovementTypeEnum type;
     private Instant creationDatetime;
 
-    public StockMovement(int id, StockValue value, MovementTypeEnum type, Instant creationDatetime) {
+    public StockMovement(Integer id, StockValue value, MovementTypeEnum type, Instant creationDatetime) {
         this.id = id;
         this.value = value;
         this.type = type;
         this.creationDatetime = creationDatetime;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

@@ -7,6 +7,9 @@ public class StockValue {
         this.quantity = quantity;
         this.unit = unit;
     }
+    public StockValue(){
+
+    }
 
     public Double getQuantity() {
         return quantity;
@@ -15,6 +18,7 @@ public class StockValue {
     public void setQuantity(Double quantity) {
         this.quantity = quantity;
     }
+
 
     public Unit getUnit() {
         return unit;
