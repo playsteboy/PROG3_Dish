@@ -30,4 +30,14 @@ public class StockMovement {
     public Instant getCreationDatetime() {
         return creationDatetime;
     }
+
+    @Override
+    public String toString() {
+        return "StockMovement{" +
+                "id=" + id +
+                ", value=" + value +
+                ", type=" + type +
+                ", creationDatetime=" + creationDatetime +
+                '}';
+    }
 }

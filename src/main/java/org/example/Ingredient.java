@@ -2,7 +2,10 @@ package org.example;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 public class Ingredient {
     private Integer id;
@@ -67,18 +70,32 @@ public class Ingredient {
     }
 
     public StockValue getStockValueAt(Instant t) {
-        Double totalQuantity = 0.0;
-        for (StockMovement sm : stockMovementList) {
-            if (!sm.getCreationDatetime().isAfter(t)) {
-                if (sm.getType().name().equals("IN")) {
-                    totalQuantity += sm.getValue().getQuantity();
-                } else {
-                    totalQuantity -= sm.getValue().getQuantity();
-                }
-            }
+        if (stockMovementList == null) return null;
+        Map<Unit, List<StockMovement>> unitSet = stockMovementList.stream()
+                .collect(Collectors.groupingBy(stockMovement -> stockMovement.getValue().getUnit()));
+        if (unitSet.keySet().size() > 1) {
+            throw new RuntimeException("Multiple unit found and not handle for conversion");
         }
-        return new StockValue(totalQuantity, Unit.KG);
+
+        List<StockMovement> stockMovements = stockMovementList.stream()
+                .filter(stockMovement -> !stockMovement.getCreationDatetime().isAfter(t))
+                .toList();
+        double movementIn = stockMovements.stream()
+                .filter(stockMovement -> stockMovement.getType().equals(MovementTypeEnum.IN))
+                .flatMapToDouble(stockMovement -> DoubleStream.of(stockMovement.getValue().getQuantity()))
+                .sum();
+        double movementOut = stockMovements.stream()
+                .filter(stockMovement -> stockMovement.getType().equals(MovementTypeEnum.OUT))
+                .flatMapToDouble(stockMovement -> DoubleStream.of(stockMovement.getValue().getQuantity()))
+                .sum();
+
+        StockValue stockValue = new StockValue();
+        stockValue.setQuantity(movementIn - movementOut);
+        stockValue.setUnit(unitSet.keySet().stream().findFirst().get());
+
+        return stockValue;
     }
+
 
     @Override
     public String toString() {
