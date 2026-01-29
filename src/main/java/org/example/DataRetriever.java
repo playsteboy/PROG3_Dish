@@ -382,7 +382,7 @@ from stockmovement where id_ingredient=?
         DBConnection dbConnection = new DBConnection();
         try (Connection connection = dbConnection.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement("""
-                    select id, reference, creation_datetime from "order" where reference like ?""");
+                    select id, reference, creation_datetime,"type",stat from "order" where reference like ?""");
             preparedStatement.setString(1, reference);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
@@ -392,9 +392,18 @@ from stockmovement where id_ingredient=?
                 order.setReference(resultSet.getString("reference"));
                 order.setCreationDatetime(resultSet.getTimestamp("creation_datetime").toInstant());
                 order.setDishOrderList(findDishOrderByIdOrder(idOrder));
+                String statStr = resultSet.getString("stat");
+                if (statStr != null) {
+                    order.setStat(Command_stat.valueOf(statStr));
+                }
+
+                String typeStr = resultSet.getString("type");
+                if (typeStr != null) {
+                    order.setType(Command_type.valueOf(typeStr));
+                }
                 return order;
             }
-            throw new RuntimeException("Order not found with reference " + reference);
+            return null;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -431,55 +440,69 @@ from stockmovement where id_ingredient=?
         Connection connection = dbConnection.getConnection();
         try{
             connection.setAutoCommit(false);
-            PreparedStatement ps = connection.prepareStatement(
-                    """
- INSERT INTO "order" (id, reference, creation_datetime) VALUES (?, ?, ?)
-                    ON CONFLICT (id) DO UPDATE
-                    SET reference = EXCLUDED.reference,
-                        creation_datetime = EXCLUDED.creation_datetime
-"""
-            );
-            ps.setInt(1,orderToSave.getId());
-            ps.setString(2,orderToSave.getReference());
-            ps.setTimestamp(3,Timestamp.from(orderToSave.getCreationDatetime()));
-            ps.executeUpdate();
-            if(orderToSave.getDishOrders()!=null){
-                if(orderToSave.getDishOrders().isEmpty()){
-                    PreparedStatement psDelete = connection.prepareStatement("delete from dish_order where id_order = ? ");
-                    psDelete.setInt(1, orderToSave.getId());
-                    psDelete.executeUpdate();
-                    connection.commit();
-                    connection.close();
-                    throw new RuntimeException("No dish found in order");
-                }
-                else{
-                    PreparedStatement psOrder = connection.prepareStatement(
-                            "insert into dish_order (id, id_order,id_dish,quantity) " +
-                                    "values (?,?,?,?) on conflict(id) do nothing");
-                    for (DishOrder dishOrder : orderToSave.getDishOrders()) {
-                        psOrder.setInt(1, dishOrder.getId());
-                        psOrder.setInt(2,orderToSave.getId());
-                        psOrder.setInt(3,dishOrder.getDish().getId());
-                        psOrder.setInt(4,dishOrder.getQuantity());
-                        psOrder.addBatch();
-                        for(DishIngredient dishIngredient: findDishById(dishOrder.getDish().getId()).getDishIngredients()){
-                            Ingredient ingredient = findIngredientById(dishIngredient.getIngredient().getId());
-                            Double quantityRequired = dishIngredient.getQuantity()*dishOrder.getQuantity();
-                            Double quantityActual = ingredient.getStockValueAt(orderToSave.getCreationDatetime()).getQuantity();
-                            if(quantityRequired>quantityActual){
-                                connection.rollback();
-                                connection.close();
-                                throw new RuntimeException(ingredient.getName()+" quantity is not sufficient");
+            Order orderToFind = findOrderByReference(orderToSave.getReference());
+            if (orderToFind != null && Command_stat.DELIVERED.equals(orderToFind.getStat())){
+                connection.rollback();
+                connection.close();
+                throw new RuntimeException("Delivered order can t be updated");
+            }
+            else{
+                PreparedStatement ps = connection.prepareStatement(
+                        """
+     INSERT INTO "order" (id, reference, creation_datetime,"type",stat) VALUES (?, ?, ?,?::Command_type,?::Command_stat)
+                        ON CONFLICT (id) DO UPDATE
+                        SET reference = EXCLUDED.reference,
+                            creation_datetime = EXCLUDED.creation_datetime,
+                            "type" = EXCLUDED.type,
+                            stat = EXCLUDED.stat
+                            
+    """
+                );
+                ps.setInt(1,orderToSave.getId());
+                ps.setString(2,orderToSave.getReference());
+                ps.setTimestamp(3,Timestamp.from(orderToSave.getCreationDatetime()));
+                ps.setString(4,orderToSave.getType().toString());
+                ps.setString(5,orderToSave.getStat().toString());
+                ps.executeUpdate();
+                if(orderToSave.getDishOrders()!=null){
+                    if(orderToSave.getDishOrders().isEmpty()){
+                        PreparedStatement psDelete = connection.prepareStatement("delete from dish_order where id_order = ? ");
+                        psDelete.setInt(1, orderToSave.getId());
+                        psDelete.executeUpdate();
+                        connection.commit();
+                        connection.close();
+                        throw new RuntimeException("No dish found in order");
+                    }
+                    else{
+                        PreparedStatement psOrder = connection.prepareStatement(
+                                "insert into dish_order (id, id_order,id_dish,quantity) " +
+                                        "values (?,?,?,?) on conflict(id) do nothing");
+                        for (DishOrder dishOrder : orderToSave.getDishOrders()) {
+                            psOrder.setInt(1, dishOrder.getId());
+                            psOrder.setInt(2,orderToSave.getId());
+                            psOrder.setInt(3,dishOrder.getDish().getId());
+                            psOrder.setInt(4,dishOrder.getQuantity());
+                            psOrder.addBatch();
+                            for(DishIngredient dishIngredient: findDishById(dishOrder.getDish().getId()).getDishIngredients()){
+                                Ingredient ingredient = findIngredientById(dishIngredient.getIngredient().getId());
+                                Double quantityRequired = dishIngredient.getQuantity()*dishOrder.getQuantity();
+                                Double quantityActual = ingredient.getStockValueAt(orderToSave.getCreationDatetime()).getQuantity();
+                                if(quantityRequired>quantityActual){
+                                    connection.rollback();
+                                    connection.close();
+                                    throw new RuntimeException(ingredient.getName()+" quantity is not sufficient");
+                                }
                             }
                         }
-                    }
 
-                    int[] result = psOrder.executeBatch();
+                        int[] result = psOrder.executeBatch();
+                    }
                 }
+                connection.commit();
+                connection.close();
+                return findOrderByReference(orderToSave.getReference());
             }
-            connection.commit();
-            connection.close();
-            return findOrderByReference(orderToSave.getReference());
+
 
         }catch (SQLException e){
             if(connection != null){

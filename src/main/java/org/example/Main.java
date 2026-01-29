@@ -85,12 +85,15 @@ public class Main {
         Order order = new Order(
                 1,
                 "ORD00001",
-                Instant.now()
+                Instant.now(),
+                Command_type.EAT_IN,
+                Command_stat.CREATED
+
         );
         DishOrder dishOrder = new DishOrder(
                 1,
                 dish2,
-                1
+                10
         );
         dataRetriever.saveDish(dish2);
         List<DishOrder> dishOrders = new ArrayList<>();

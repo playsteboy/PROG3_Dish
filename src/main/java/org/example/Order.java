@@ -9,11 +9,15 @@ public class Order {
     private String reference;
     private Instant creationDatetime;
     private List<DishOrder> dishOrders;
+    private Command_type type;
+    private  Command_stat stat;
 
-    public Order(int id, String reference, Instant creationDatetime) {
+    public Order(int id, String reference, Instant creationDatetime,Command_type type, Command_stat stat) {
         this.id = id;
         this.reference = reference;
         this.creationDatetime = creationDatetime;
+        this.type = type;
+        this.stat = stat;
     }
 
     public Order() {
@@ -35,6 +39,26 @@ public class Order {
     public Double getTotalAmountWithVAt() {
         Double brut = getTotalAmountWithoutVAt();
         return brut != null ? brut * 1.20 : 0.0;
+    }
+
+    public Command_type getType() {
+        return type;
+    }
+
+    public Command_stat getStat() {
+        return stat;
+    }
+
+    public void setDishOrders(List<DishOrder> dishOrders) {
+        this.dishOrders = dishOrders;
+    }
+
+    public void setType(Command_type type) {
+        this.type = type;
+    }
+
+    public void setStat(Command_stat stat) {
+        this.stat = stat;
     }
 
     public void setId(Integer id) {
@@ -76,6 +100,8 @@ public class Order {
                 ", reference='" + reference + '\'' +
                 ", creationDatetime=" + creationDatetime +
                 ", dishOrders=" + dishOrders +
+                ", type=" + type +
+                ", stat=" + stat +
                 '}';
     }
 }

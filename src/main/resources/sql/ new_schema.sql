@@ -40,3 +40,10 @@ create table if not exists dish_order
     id_dish  int references dish (id),
     quantity int
     );
+
+create type command_type as enum ('EAT_IN','TAKE_AWAY');
+create type command_stat as enum ('CREATED','READY','DELIVERED');
+
+alter table "order" add column "type" command_type;
+alter table "order" add column "stat" command_stat;
+
