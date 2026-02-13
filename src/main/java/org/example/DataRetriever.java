@@ -2,6 +2,9 @@ package org.example;
 
 import java.sql.*;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -490,6 +493,141 @@ from stockmovement where id_ingredient=?
                     throw new  RuntimeException(e1);
                 }
             }
+            throw new RuntimeException(e);
+        }
+    }
+    public StockValue  getStockValueAt(Instant  t,  Integer ingredientIdentifier){
+        try{
+            DBConnection dbConnection = new DBConnection();
+            Connection connection = dbConnection.getConnection();
+            PreparedStatement pstmt = connection.prepareStatement("""
+select unit, sum(
+             case
+             when type='OUT' then (quantity*-1)
+             else (quantity)
+             end
+) as actual_quantity 
+from stockmovement 
+join ingredient on stockmovement.id_ingredient=ingredient.id
+where id_ingredient=? and creation_datetime<=? group by (id_ingredient,unit)
+""");
+            pstmt.setInt(1, ingredientIdentifier);
+            pstmt.setTimestamp(2, Timestamp.from(t));
+            ResultSet rs = pstmt.executeQuery();
+            if(rs.next()){
+                connection.close();
+                return new StockValue(
+                        rs.getDouble("actual_quantity"),
+                        (Unit.valueOf(rs.getString("unit").toUpperCase()))
+                );
+            }
+            connection.close();
+            return null;
+        }catch(SQLException e){
+            throw new RuntimeException(e);
+        }
+    }
+    public Double  getDishCost(Integer  dishId){
+        try{
+            DBConnection dbConnection = new DBConnection();
+            Connection connection = dbConnection.getConnection();
+            PreparedStatement pstmt = connection.prepareStatement("""
+select SUM(ingredient.price*dishingredient.quantity_required) as dish_cost
+from dishingredient 
+join ingredient on ingredient.id=dishingredient.id_ingredient
+where dishingredient.id_dish=? 
+""");
+            pstmt.setInt(1, dishId);
+            ResultSet rs = pstmt.executeQuery();
+            if(rs.next()){
+                double cost = rs.getDouble("dish_cost");
+                connection.close();
+                return cost;
+
+            }
+            connection.close();
+            return null;
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+    }
+    public Double  getGrossMargin(Integer  dishId){
+        try{
+            DBConnection dbConnection = new DBConnection();
+            Connection connection = dbConnection.getConnection();
+            Double dishCost = getDishCost(dishId);
+            PreparedStatement pstmt = connection.prepareStatement("""
+select SUM(selling_price-?) as gross_margin
+from dish
+where id=? 
+""");
+            pstmt.setDouble(1, dishCost);
+            pstmt.setInt(2, dishId);
+            ResultSet rs = pstmt.executeQuery();
+            if(rs.next()){
+                double grossMargin = rs.getDouble("gross_margin");
+                if(rs.wasNull()){
+                    connection.close();
+                    throw new RuntimeException("Price is null");
+                }else{
+                    connection.close();
+                    return grossMargin;
+                }
+            }
+            connection.close();
+            return null;
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+    }
+    public String getStockStatusEvolution(String periodicity, LocalDate startDate, LocalDate endDate){
+        try{
+            StringBuilder result = new StringBuilder();
+            List<LocalDate> intervals = new ArrayList<>();
+            LocalDate current = startDate;
+            while (!current.isAfter(endDate)) {
+                intervals.add(current);
+                if ("DAY".equalsIgnoreCase(periodicity)) current = current.plusDays(1);
+                else if ("MONTH".equalsIgnoreCase(periodicity)) current = current.plusMonths(1);
+                else current = current.plusYears(1);
+            }
+            StringBuilder sql = new StringBuilder("SELECT i.id, i.name ");
+            for (LocalDate date : intervals) {
+                sql.append("""
+                        , (SELECT SUM(CASE WHEN sm.type = 'IN' THEN sm.quantity ELSE -sm.quantity END) 
+                        FROM stockmovement sm WHERE sm.id_ingredient = i.id 
+                        AND sm.creation_datetime <= ?) 
+                        AS \"""")
+                        .append(date).append("\"");
+            }
+            sql.append(" FROM ingredient i ORDER BY i.id");
+            DBConnection dbConnection = new DBConnection();
+            Connection connection = dbConnection.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(sql.toString());
+                int paramIndex = 1;
+                ZoneId zone = ZoneId.systemDefault();
+                for (LocalDate date : intervals) {
+                    Instant limit = date.atTime(LocalTime.MAX).atZone(zone).toInstant();
+                    stmt.setTimestamp(paramIndex++, Timestamp.from(limit));
+                }
+
+                ResultSet rs = stmt.executeQuery();
+                    ResultSetMetaData metaData = rs.getMetaData();
+                    int columnCount = metaData.getColumnCount();
+                    for (int i = 1; i <= columnCount; i++) {
+                        result.append(String.format("%-12s", metaData.getColumnLabel(i))).append("\t");
+                    }
+                    result.append("\n");
+                    while (rs.next()) {
+                        for (int i = 1; i <= columnCount; i++) {
+                            String value = rs.getString(i);
+                            result.append(String.format("%-12s", (value != null ? value : "..."))).append("\t");
+                        }
+                        result.append("\n");
+                    }
+                    connection.close();
+            return result.toString();
+        }catch (SQLException e){
             throw new RuntimeException(e);
         }
     }

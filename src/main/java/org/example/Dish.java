@@ -23,7 +23,8 @@ public class Dish {
         double totalPrice = 0;
         for (DishIngredient di: dishIngredients) {
             if(di.getQuantity() == null) {
-                throw new RuntimeException("...");
+                throw new RuntimeException("Some ingredients have undefined quantity");
+
             }
             totalPrice += di.getIngredient().getPrice() * di.getQuantity();
         }
