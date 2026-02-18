@@ -8,9 +8,9 @@ public class DBConnection {
 
     public Connection getConnection() {
         try {
-            String jdbcURl = System.getenv("JDBC_URl"); //
-            String user = System.getenv("USER"); //mini_dish_db_manager
-            String password = System.getenv("PASSWORD"); //123456
+            String jdbcURl = System.getenv("JDBC_URl_INVOICE");
+            String user = System.getenv("USER_INVOICE");
+            String password = System.getenv("PSW_INVOICE");
             return DriverManager.getConnection(jdbcURl, user, password);
         } catch (SQLException e) {
             throw new RuntimeException(e);
