@@ -1,16 +1,9 @@
 package org.example;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.sql.*;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DataRetriever {
     public List<InvoiceTotal> findInvoiceTotals() throws SQLException {
@@ -32,6 +25,7 @@ group by(invoice.id, invoice.customer_name)
             invoiceTotal.setAmount(resultSet.getDouble("iP"));
             invoiceTotals.add(invoiceTotal);
         }
+        connection.close();
         return invoiceTotals;
     }
     public List<InvoiceTotal> findConfirmedAndPaidInvoiceTotals() throws SQLException {
@@ -56,6 +50,7 @@ group by(invoice.id, invoice.customer_name)
             invoiceTotal.setAmount(resultSet.getDouble("iP"));
             invoiceTotals.add(invoiceTotal);
         }
+        connection.close();
         return invoiceTotals;
     }
     public List<InvoiceStatusTotal> computeStatusTotal() throws SQLException {
@@ -76,20 +71,38 @@ group by(invoice.status)
             invoiceStatusTotal.setUnit_price(resultSet.getDouble("iP"));
             invoiceStatusTotals.add(invoiceStatusTotal);
         }
+        connection.close();
         return invoiceStatusTotals;
     }
-    public Double computeWeightedTurnover() throws SQLException {
-        List<InvoiceStatusTotal> IStotals = computeStatusTotal();
+    public Double computeWeightedTurnover(){
+        DBConnection dbConnection = new DBConnection();
+        Connection connection = dbConnection.getConnection();
         Double weightedTurnover = 0.0;
-        for(InvoiceStatusTotal it : IStotals){
-            if(it.getStatus().equals(InvoiceStatus.CONFIRMED)){
-                weightedTurnover = (weightedTurnover + it.getUnit_price())/2;
+        try(PreparedStatement pstmt = connection.prepareStatement(
+                """
+select sum(case
+               when status = 'PAID' then il.quantity * il.unit_price * 1
+               else
+                   case
+                       when status = 'CONFIRMED' then il.quantity * il.unit_price * 0.5
+                       else
+                           case when invoice.status = 'DRAFT' then il.quantity * il.unit_price * 0 else 0 end
+                       end
+    end)
+from invoice
+         join invoice_line il on invoice.id = il.invoice_id;
+
+"""
+        )){
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                weightedTurnover+=rs.getDouble(1);
             }
-            if(it.getStatus().equals(InvoiceStatus.PAID)){
-                weightedTurnover = (weightedTurnover + it.getUnit_price());
-            }
+            return  weightedTurnover;
+
+        }catch (SQLException ex) {
+            throw  new RuntimeException(ex);
         }
-        return weightedTurnover;
     }
     public List<InvoiceTaxSummary> findInvoiceTaxSummary() throws SQLException {
         List<InvoiceTaxSummary> invoiceTaxSummary = new ArrayList<>();
@@ -117,48 +130,44 @@ group by(invoice.id,tax_config.rate)
                     )
             );
         }
+        connection.close();
         return invoiceTaxSummary;
     }
-    public BigDecimal computeWeightedTurnoverTtc() throws SQLException {
-        Map<InvoiceTotal, InvoiceTaxSummary> map = new HashMap<>();
+    public BigDecimal computeWeightedTurnoverTtc() {
         Double result = 0.0;
         DBConnection dbConnection = new DBConnection();
         Connection connection = dbConnection.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(
+        try(PreparedStatement pstmt = connection.prepareStatement(
                 """
-select invoice.id as iId,invoice.status as iS,
-SUM(invoice_line.unit_price * invoice_line.quantity) AS HT,
-SUM(invoice_line.unit_price * invoice_line.quantity) * (tax_config.rate / 100) AS TVA,
-SUM(invoice_line.unit_price * invoice_line.quantity) * (1 + tax_config.rate / 100) AS TTC
-from invoice join invoice_line on invoice.id = invoice_line.invoice_id 
-join tax_config on tax_config.id = tax_config.id
-group by(invoice.id,tax_config.rate,invoice.status) 
+select sum(case
+               when status = 'PAID' then montant_ttc * 1
+               else
+                   case
+                       when status = 'CONFIRMED' then montant_ttc * 0.5
+                       else
+                           case when invoice.status = 'DRAFT' then montant_ttc * 0 else 0 end
+                       end
+    end)
+from invoice
+         join (
+              select invoice_id,
+                     montant_ht,
+                     montant_ht * tax_config.rate / 100              as tva,
+                     montant_ht + montant_ht * tax_config.rate / 100 as montant_ttc
+              from (select invoice_id, sum(quantity * unit_price) as montant_ht
+                    from invoice_line
+                    group by invoice_id) invoice_montant_ht,
+                   tax_config) il on invoice.id = il.invoice_id;
 """
-        );
-        ResultSet resultSet = preparedStatement.executeQuery();
-        while (resultSet.next()) {
-            InvoiceTotal  invoiceTotal = new InvoiceTotal();
-            invoiceTotal.setId(resultSet.getInt("iId"));
-            invoiceTotal.setStatus(InvoiceStatus.valueOf(resultSet.getString("iS")));
-            map.put(invoiceTotal,
-                    new InvoiceTaxSummary(
-                            resultSet.getInt("iId"),
-                            resultSet.getDouble("HT"),
-                            resultSet.getDouble("TVA"),
-                            resultSet.getDouble("TTC")
-                    )
-            );
-        }
-        for (Map.Entry<InvoiceTotal, InvoiceTaxSummary> entry : map.entrySet()) {
-            InvoiceTotal invoiceTotal = entry.getKey();
-            InvoiceTaxSummary invoiceTaxSummary = entry.getValue();
-            if (invoiceTotal.getStatus().equals(InvoiceStatus.CONFIRMED)) {
-                result = (result + invoiceTaxSummary.getTTC()) / 2;
+        )){
+            ResultSet rs = pstmt.executeQuery();
+            while(rs.next()){
+                result = result+rs.getDouble(1);
             }
-            if (invoiceTotal.getStatus().equals(InvoiceStatus.PAID)) {
-                result = (result + invoiceTaxSummary.getTTC());
-            }
+            return BigDecimal.valueOf(result);
+
+        }catch (SQLException ex) {
+            throw  new RuntimeException(ex);
         }
-        return BigDecimal.valueOf(result);
     }
 }

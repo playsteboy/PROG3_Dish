@@ -8,13 +8,13 @@ import java.util.List;
 public class Main {
     public static void main(String[] args)throws SQLException{
         DataRetriever dr = new DataRetriever();
-//        List<InvoiceTotal> Itotals = dr.findInvoiceTotals();
-//        for (InvoiceTotal it : Itotals) {
-//            System.out.printf("%d | %-7s | %.2f%n",
-//                    it.getId(),
-//                    it.getCustomerName(),
-//                    it.getAmount());
-//        }
+        List<InvoiceTotal> Itotals = dr.findInvoiceTotals();
+        for (InvoiceTotal it : Itotals) {
+            System.out.printf("%d | %-7s | %.2f%n",
+                    it.getId(),
+                    it.getCustomerName(),
+                    it.getAmount());
+        }
 //        List<InvoiceTotal> CPItotals = dr.findConfirmedAndPaidInvoiceTotals();
 //        for (InvoiceTotal it : CPItotals) {
 //            System.out.printf("%d | %-7s | %-10s | %.2f%n",
