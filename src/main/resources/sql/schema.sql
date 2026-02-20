@@ -1,20 +1,18 @@
-CREATE TYPE invoice_status AS ENUM('DRAFT', 'CONFIRMED', 'PAID');
-
-CREATE TABLE invoice (
-id SERIAL PRIMARY KEY,
-customer_name VARCHAR NOT NULL,
-status invoice_status
+CREATE TABLE candidate (
+                           id SERIAL PRIMARY KEY,
+                           name TEXT NOT NULL
 );
 
-CREATE TABLE invoice_line (
-id SERIAL PRIMARY KEY,
-invoice_id INT NOT NULL REFERENCES invoice(id),
-label VARCHAR NOT NULL,
-quantity INT NOT NULL,
-unit_price NUMERIC(10,2) NOT NULL
+CREATE TABLE voter (
+                       id SERIAL PRIMARY KEY,
+                       name TEXT NOT NULL
 );
-CREATE TABLE tax_config (
-id SERIAL PRIMARY KEY,
-label VARCHAR NOT NULL,
-rate NUMERIC(5,2) NOT NULL
+
+CREATE TYPE vote_type AS ENUM('VALID', 'BLANK', 'NULL');
+
+CREATE TABLE vote (
+                      id SERIAL PRIMARY KEY,
+                      candidate_id INT REFERENCES candidate(id),
+                      voter_id INT NOT NULL REFERENCES voter(id),
+                      vote_type vote_type NOT NULL
 );

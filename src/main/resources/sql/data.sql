@@ -1,13 +1,20 @@
-INSERT INTO invoice (customer_name, status) VALUES
-('Alice', 'CONFIRMED'),
-('Bob', 'PAID'),
-('Charlie', 'DRAFT');
+INSERT INTO candidate (name) VALUES
+                                 ('Alice'),
+                                 ('Bob'),
+                                 ('Charlie');
 
-INSERT INTO invoice_line (invoice_id, label, quantity, unit_price) VALUES
-(1, 'Produit A', 2, 100),
-(1, 'Produit B', 1, 50),
-(2, 'Produit A', 5, 100),
-(2, 'Service C', 1, 200),
-(3, 'Produit B', 3, 50);
-INSERT INTO tax_config (label,rate) VALUES
-('TVA STANDARD', 20);
+INSERT INTO voter (name) VALUES
+                             ('Voter1'),
+                             ('Voter2'),
+                             ('Voter3'),
+                             ('Voter4'),
+                             ('Voter5'),
+                             ('Voter6');
+
+INSERT INTO vote (candidate_id, voter_id, vote_type) VALUES
+                                                         (1, 1, 'VALID'),
+                                                         (1, 2, 'VALID'),
+                                                         (2, 3, 'VALID'),
+                                                         (2, 4, 'BLANK'),
+                                                         (NULL, 5, 'BLANK'),
+                                                         (3, 6, 'NULL');

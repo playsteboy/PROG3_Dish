@@ -8,9 +8,9 @@ public class DBConnection {
 
     public Connection getConnection() {
         try {
-            String jdbcURl = System.getenv("JDBC_URl_INVOICE");
-            String user = System.getenv("USER_INVOICE");
-            String password = System.getenv("PSW_INVOICE");
+            String jdbcURl = System.getenv("JDBC_URl_VOTE");
+            String user = System.getenv("USER_VOTE");
+            String password = System.getenv("PASSWORD");
             return DriverManager.getConnection(jdbcURl, user, password);
         } catch (SQLException e) {
             throw new RuntimeException(e);

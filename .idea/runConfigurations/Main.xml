@@ -3,10 +3,11 @@
     <envs>
       <env name="JDBC_URL" value="jdbc:postgresql://localhost:5432/mini_dish_db" />
       <env name="JDBC_URL_INVOICE" value="jdbc:postgresql://localhost:5432/invoice_db" />
+      <env name="JDBC_URL_VOTE" value="jdbc:postgresql://localhost:5432/vote_db" />
       <env name="PASSWORD" value="123456" />
-      <env name="PSW_INVOICE" value="123456" />
       <env name="USER" value="mini_dish_db_manager" />
       <env name="USER_INVOICE" value="invoice_db_manager" />
+      <env name="USER_VOTE" value="vote_db_manager" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.example.Main" />
     <module name="TestJDBC" />
