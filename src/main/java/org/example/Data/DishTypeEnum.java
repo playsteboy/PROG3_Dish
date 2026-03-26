@@ -1,4 +1,4 @@
-package org.example;
+package org.example.Data;
 
 public enum DishTypeEnum {
     STARTER, MAIN, DESSERT

@@ -1,32 +1,43 @@
-package org.example;
+package org.example.Entities;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.*;
+import org.example.Data.DishTypeEnum;
 
 import java.util.List;
-import java.util.Objects;
 
+@Entity
+@Table(name = "dish")
 public class Dish {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private Double price;
+    private Double selling_price;
     private String name;
+    @Enumerated(EnumType.STRING)
     private DishTypeEnum dishType;
+    @Transient
     private List<DishIngredient> dishIngredients;
 
-    public Double getPrice() {
-        return price;
+    public Double getSelling_price() {
+        return selling_price;
     }
 
 
-    public void setPrice(Double price) {
-        this.price = price;
+    public void setSelling_price(Double price) {
+        this.selling_price = price;
     }
 
+    @JsonIgnore
     public Double getDishCost() {
         double totalPrice = 0;
         for (DishIngredient di: dishIngredients) {
-            if(di.getQuantity() == null) {
+            if(di.getQuantity_required() == null) {
                 throw new RuntimeException("Some ingredients have undefined quantity");
 
             }
-            totalPrice += di.getIngredient().getPrice() * di.getQuantity();
+            totalPrice += di.getIngredient().getPrice() * di.getQuantity_required();
         }
         return totalPrice;
     }
@@ -77,17 +88,19 @@ public class Dish {
     public String toString() {
         return "Dish{" +
                 "id=" + id +
-                ", price=" + price +
+                ", price=" + selling_price +
                 ", name='" + name + '\'' +
                 ", dishType=" + dishType +
                 ", dishIngredients=" + dishIngredients +
                 '}';
     }
 
+
+    @JsonIgnore
     public Double getGrossMargin() {
-        if (price == null) {
+        if (selling_price == null) {
             throw new RuntimeException("Price is null");
         }
-        return price - getDishCost();
+        return selling_price - getDishCost();
     }
 }

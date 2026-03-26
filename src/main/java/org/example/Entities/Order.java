@@ -1,7 +1,6 @@
-package org.example;
+package org.example.Entities;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Order {
@@ -25,8 +24,8 @@ public class Order {
         }
         double total = 0.0;
         for (DishOrder d : dishOrders) {
-            if (d.getDish() != null && d.getDish().getPrice() != null) {
-                total += d.getDish().getPrice() * d.getQuantity();
+            if (d.getDish() != null && d.getDish().getSelling_price() != null) {
+                total += d.getDish().getSelling_price() * d.getQuantity();
             }
         }
         return total;

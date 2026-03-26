@@ -1,13 +1,22 @@
-package org.example;
+package org.example.Entities;
+
+import jakarta.persistence.*;
+import org.example.Data.MovementTypeEnum;
 
 import java.time.Instant;
-
+@Entity
+@Table(name = "stockmovement")
 public class StockMovement {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Embedded
     private StockValue value;
+    @Enumerated(EnumType.STRING)
     private MovementTypeEnum type;
     private Instant creationDatetime;
 
+    public StockMovement(){}
     public StockMovement(Integer id, StockValue value, MovementTypeEnum type, Instant creationDatetime) {
         this.id = id;
         this.value = value;

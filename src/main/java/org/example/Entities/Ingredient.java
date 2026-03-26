@@ -1,17 +1,28 @@
-package org.example;
+package org.example.Entities;
+
+import jakarta.persistence.*;
+import org.example.Data.CategoryEnum;
+import org.example.Data.MovementTypeEnum;
+import org.example.Data.Unit;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
+@Entity
+@Table(name = "ingredient")
 public class Ingredient {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+    @Enumerated(EnumType.STRING)
     private CategoryEnum category;
     private Double price;
+    @OneToMany
+    @JoinColumn(name = "id_ingredient")
     private List<StockMovement> stockMovementList;
 
     public Ingredient(Integer id) {
