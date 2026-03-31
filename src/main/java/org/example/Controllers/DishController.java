@@ -1,51 +1,74 @@
 package org.example.Controllers;
 
 import org.apache.coyote.BadRequestException;
+import org.example.DTO.DishCreateRequest;
+import org.example.DTO.DishIngredientRequest;
 import org.example.Entities.Dish;
 import org.example.Entities.DishIngredient;
 import org.example.Entities.Ingredient;
 import org.example.ExceptionHandlers.EntityNotFoundException;
+import org.example.Repositories.DishIngredientRepository;
+import org.example.Repositories.DishRepository;
 import org.example.Services.DishIngredientService;
 import org.example.Services.DishService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-@Controller
+@RestController
 public class DishController {
     private DishService dishService;
-    private DishIngredientService dishIngredientService;
-    public DishController(DishService dishService,  DishIngredientService dishIngredientService) {
+    private DishIngredientRepository dishIngredientRepository;
+    private DishRepository  dishRepository;
+    public DishController(DishService dishService,  DishIngredientRepository dishIngredientRepository,  DishRepository dishRepository) {
         this.dishService = dishService;
-        this.dishIngredientService = dishIngredientService;
+        this.dishIngredientRepository = dishIngredientRepository;
+        this.dishRepository = dishRepository;
     }
 
-    @GetMapping("/dishes")
-    public ResponseEntity<?> getAllDishes() {
-        return ResponseEntity.ok().body(dishService.getAllDishes());
-    }
+    @PutMapping("/{id}/ingredients")
+    public ResponseEntity<?> updateIngredients(
+            @PathVariable int id,
+            @RequestBody List<DishIngredientRequest> requests) {
 
-    @PostMapping("/dishes/{id}/ingredients")
-    public ResponseEntity<?> addIngredient(@PathVariable Integer id, @RequestBody List<Ingredient> ingredients) {
-        try{
-            Dish dishToAdd = dishService.getDishById(id);
-            dishIngredientService.updateDishIngredient(dishToAdd,ingredients);
-            return ResponseEntity.ok().build();
-        }catch(Exception e){
+        if (requests == null || requests.isEmpty()) {
+            return ResponseEntity.status(400)
+                    .body("Body is required");
+        }
+
+        try {
+            dishIngredientRepository.updateDishIngredients(id, requests);
+            return ResponseEntity.ok("Updated");
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.status(404).body(e.getMessage());
+            }
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
+@PostMapping("/dishes")
+public ResponseEntity<?> create(@RequestBody List<DishCreateRequest> requests) {
+    try {
+        return ResponseEntity.status(201).body(dishRepository.saveAll(requests));
+
+    }
+    catch(Exception e){
             Throwable target = (e.getCause() != null) ? e.getCause() : e;
 
-            if (target instanceof BadRequestException) {
+            if (target instanceof IllegalArgumentException) {
                 return ResponseEntity.badRequest().body(target.getMessage());
-            }
-            if (target instanceof EntityNotFoundException) {
-                return ResponseEntity.status(404).body(target.getMessage());
             }
             return ResponseEntity.internalServerError().body(target.getMessage());
         }
+}
+    @GetMapping("/dishes")
+    public List<Dish> getAll(
+            @RequestParam(required = false) Double priceUnder,
+            @RequestParam(required = false) Double priceOver,
+            @RequestParam(required = false) String name
+    ) {
+        return dishRepository.findAll(priceUnder, priceOver, name);
     }
 }

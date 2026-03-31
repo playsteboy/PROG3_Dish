@@ -28,23 +28,23 @@ public class DishIngredientService {
     public void deleteByDishId(Integer dishId){
         dishIngredientRepository.deleteById(dishId);
     }
-    public void updateDishIngredient(Dish dish,List<Ingredient> ingredients) {
-        try{
-            if(ingredients==null || ingredients.isEmpty()){
-                throw new BadRequestException("Missing ingredients");
-            }
-            DishIngredient dishIngredient = new DishIngredient();
-            dishIngredient.setDish(dishRepository.getReferenceById(dish.getId()));
-            deleteByDishId(dish.getId());
-            for (Ingredient ingredient : ingredients) {
-                if (ingredient.getId() != null && ingredientRepository.existsById(ingredient.getId())) {
-                    dishIngredient.setIngredient(ingredientRepository.getReferenceById(ingredient.getId()));
-                    dishIngredientRepository.save(dishIngredient);
-                }
-            }
-        }catch(Exception e){
-            throw new RuntimeException(e);
-        }
-    }
+//    public void updateDishIngredient(Dish dish,List<Ingredient> ingredients) {
+//        try{
+//            if(ingredients==null || ingredients.isEmpty()){
+//                throw new BadRequestException("Missing ingredients");
+//            }
+//            DishIngredient dishIngredient = new DishIngredient();
+//            dishIngredient.setDish(dishRepository.getReferenceById(dish.getId()));
+//            deleteByDishId(dish.getId());
+//            for (Ingredient ingredient : ingredients) {
+//                if (ingredient.getId() != null && ingredientRepository.existsById(ingredient.getId())) {
+//                    dishIngredient.setIngredient(ingredientRepository.getReferenceById(ingredient.getId()));
+//                    dishIngredientRepository.save(dishIngredient);
+//                }
+//            }
+//        }catch(Exception e){
+//            throw new RuntimeException(e);
+//        }
+//    }
 
 }

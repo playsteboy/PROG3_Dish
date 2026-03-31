@@ -14,14 +14,15 @@ public class DishService {
     public DishService(DishRepository dishRepository) {
         this.dishRepository = dishRepository;
     }
-    public List<Dish> getAllDishes() {
-        return dishRepository.findAll();
-    }
-    public Dish getDishById(int id){
-        Optional<Dish> dish = dishRepository.findById(id);
-        if(dish.isEmpty()){
-            throw new EntityNotFoundException("Dish.id="+id+" is not found");
-        }
-        return dish.get();
-    }
+//    public List<Dish> getAllDishes() {
+//        return dishRepository.findAll();
+//    }
+//    public Dish getDishById(int id){
+//        Optional<Dish> dish = dishRepository.findById(id);
+//        if(dish.isEmpty()){
+//            throw new EntityNotFoundException("Dish.id="+id+" is not found");
+//        }
+//        return dish.get();
+//    }
+
 }
