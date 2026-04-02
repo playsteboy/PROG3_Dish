@@ -1,10 +1,7 @@
 package org.example.Entities;
 
-import jakarta.persistence.ManyToOne;
-
 public class DishOrder {
     private Integer id;
-    @ManyToOne
     private Dish dish;
     private Integer quantity;
 

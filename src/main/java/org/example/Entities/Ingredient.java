@@ -11,18 +11,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
-@Entity
-@Table(name = "ingredient")
+
 public class Ingredient {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
-    @Enumerated(EnumType.STRING)
     private CategoryEnum category;
     private Double price;
-    @OneToMany
-    @JoinColumn(name = "id_ingredient")
     private List<StockMovement> stockMovementList;
 
     public Ingredient(Integer id) {
@@ -80,7 +74,7 @@ public class Ingredient {
         this.stockMovementList = stockMovementList;
     }
 
-    public StockValue getStockValueAt(Instant t) {
+    public StockValue getStockValueAt(Instant t, Unit unit) {
         if (stockMovementList == null) return null;
         Map<Unit, List<StockMovement>> unitSet = stockMovementList.stream()
                 .collect(Collectors.groupingBy(stockMovement -> stockMovement.getValue().getUnit()));
@@ -106,7 +100,6 @@ public class Ingredient {
 
         return stockValue;
     }
-
 
     @Override
     public String toString() {

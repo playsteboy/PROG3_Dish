@@ -1,50 +1,34 @@
 package org.example.Services;
 
-import org.apache.coyote.BadRequestException;
-import org.example.Entities.Dish;
-import org.example.Entities.DishIngredient;
-import org.example.Entities.Ingredient;
+
+import org.example.DTO.DishIngredientRequest;
+
 import org.example.Repositories.DishIngredientRepository;
-import org.example.Repositories.DishRepository;
-import org.example.Repositories.IngredientRepository;
+
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class DishIngredientService {
+    private IngredientService ingredientService;
+    private DishService dishdishService;
     private DishIngredientRepository dishIngredientRepository;
-    private IngredientRepository ingredientRepository;
-    private DishRepository dishRepository;
-    public DishIngredientService(
-            DishIngredientRepository dishIngredientRepository,
-            IngredientRepository ingredientRepository,
-            DishRepository dishRepository) {
+    public DishIngredientService(DishIngredientRepository dishIngredientRepository,
+                                 IngredientService ingredientService,
+                                 DishService dishRepository) {
         this.dishIngredientRepository = dishIngredientRepository;
-        this.ingredientRepository = ingredientRepository;
-        this.dishRepository = dishRepository;
+        this.ingredientService = ingredientService;
+        this.dishdishService = dishRepository;
     }
 
-    public void deleteByDishId(Integer dishId){
-        dishIngredientRepository.deleteById(dishId);
+    public void updateDishIngredient(int dishId, List<DishIngredientRequest> requests) {
+        dishdishService.getById(dishId);
+        for (DishIngredientRequest dishIngredientRequest : requests) {
+            ingredientService.getById(dishIngredientRequest.getIdIngredient());
+        }
+        dishIngredientRepository.updateDishIngredients(dishId, requests);
     }
-//    public void updateDishIngredient(Dish dish,List<Ingredient> ingredients) {
-//        try{
-//            if(ingredients==null || ingredients.isEmpty()){
-//                throw new BadRequestException("Missing ingredients");
-//            }
-//            DishIngredient dishIngredient = new DishIngredient();
-//            dishIngredient.setDish(dishRepository.getReferenceById(dish.getId()));
-//            deleteByDishId(dish.getId());
-//            for (Ingredient ingredient : ingredients) {
-//                if (ingredient.getId() != null && ingredientRepository.existsById(ingredient.getId())) {
-//                    dishIngredient.setIngredient(ingredientRepository.getReferenceById(ingredient.getId()));
-//                    dishIngredientRepository.save(dishIngredient);
-//                }
-//            }
-//        }catch(Exception e){
-//            throw new RuntimeException(e);
-//        }
-//    }
 
 }

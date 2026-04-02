@@ -1,23 +1,15 @@
 package org.example.Entities;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.*;
 import org.example.Data.DishTypeEnum;
 
 import java.util.List;
 
-@Entity
-@Table(name = "dish")
 public class Dish {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private Double selling_price;
     private String name;
-    @Enumerated(EnumType.STRING)
     private DishTypeEnum dishType;
-    @Transient
+    @JsonIgnore
     private List<DishIngredient> dishIngredients;
 
     public Double getSelling_price() {
@@ -44,11 +36,10 @@ public class Dish {
     public Dish() {
     }
 
-    public Dish(Integer id, String name, DishTypeEnum dishType, List<DishIngredient> dishIngredients) {
+    public Dish(Integer id, String name, DishTypeEnum dishType) {
         this.id = id;
         this.name = name;
         this.dishType = dishType;
-        this.dishIngredients = dishIngredients;
     }
 
 
@@ -76,13 +67,7 @@ public class Dish {
         this.dishType = dishType;
     }
 
-    public List<DishIngredient> getDishIngredients() {
-        return dishIngredients;
-    }
 
-    public void setDishIngredients(List<DishIngredient> dishIngredients) {
-        this.dishIngredients = dishIngredients;
-    }
 
     @Override
     public String toString() {
@@ -94,7 +79,6 @@ public class Dish {
                 ", dishIngredients=" + dishIngredients +
                 '}';
     }
-
 
     @JsonIgnore
     public Double getGrossMargin() {

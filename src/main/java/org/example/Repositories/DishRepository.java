@@ -1,24 +1,22 @@
 package org.example.Repositories;
 
-import org.apache.coyote.BadRequestException;
+import org.example.Config.DataSource;
 import org.example.DTO.DishCreateRequest;
 import org.example.Data.DishTypeEnum;
 import org.example.Entities.Dish;
-import org.example.Entities.DishIngredient;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.example.Exceptions.NotFoundException;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class DishRepository {
-    private final DataSource dataSource;
-
-    public DishRepository(DataSource dataSource) {
-        this.dataSource = dataSource;
+    Connection connection;
+    DishRepository(Connection connection) {
+        this.connection = connection;
     }
 public List<Dish> saveAll(List<DishCreateRequest> requests) {
 
@@ -26,16 +24,16 @@ public List<Dish> saveAll(List<DishCreateRequest> requests) {
 
     String sql = "INSERT INTO dish(name, dish_type, selling_price) VALUES (?, ?::dish_type, ?)";
 
-    try (Connection conn = dataSource.getConnection()) {
+    try{
 
-        conn.setAutoCommit(false);
+        connection.setAutoCommit(false);
 
-        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             for (DishCreateRequest req : requests) {
                 String checkSql = "SELECT 1 FROM dish WHERE name = ?";
 
-                try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+                try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
                     checkStmt.setString(1, req.getName());
 
                     ResultSet rs = checkStmt.executeQuery();
@@ -73,10 +71,10 @@ public List<Dish> saveAll(List<DishCreateRequest> requests) {
                 }
             }
 
-            conn.commit();
+            connection.commit();
 
         } catch (Exception e) {
-            conn.rollback();
+            connection.rollback();
             throw new RuntimeException(e);
         }
 
@@ -108,8 +106,7 @@ public List<Dish> saveAll(List<DishCreateRequest> requests) {
             params.add("%" + name + "%");
         }
 
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 stmt.setObject(i + 1, params.get(i));
@@ -132,6 +129,26 @@ public List<Dish> saveAll(List<DishCreateRequest> requests) {
         }
 
         return result;
+    }
+    public Optional<Dish> findById(Integer id) {
+        try(PreparedStatement stmt = connection.prepareStatement("""
+select id, name,dish_type, selling_price  from dish where id = ?
+""")){
+            stmt.setInt(1,id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Dish d = new Dish();
+                d.setId(rs.getInt("id"));
+                d.setName(rs.getString("name"));
+                d.setDishType(DishTypeEnum.valueOf(rs.getString("dish_type")));
+                d.setSelling_price(rs.getDouble("selling_price"));
+                return Optional.of(d);
+            }
+            throw new NotFoundException("Dish with id " + id + " not found");
+
+        }catch (SQLException e){
+            throw new RuntimeException(e);
+        }
     }
     }
 

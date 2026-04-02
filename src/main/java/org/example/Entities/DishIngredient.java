@@ -1,24 +1,18 @@
 package org.example.Entities;
 
-import jakarta.persistence.*;
 import org.example.Data.Unit;
 
-@Entity
-@Table(name = "dishingredient")
+
 public class DishIngredient {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Integer id;
-    @ManyToOne
-    @JoinColumn(name = "id_dish")
+
     private Dish dish;
-    @ManyToOne
-    @JoinColumn(name = "id_ingredient")
+
     private Ingredient ingredient;
-    @Transient
+
     private Double quantity_required;
-    @Transient
-    @Enumerated(EnumType.STRING)
+
     Unit unit;
 
     public DishIngredient(Integer id, Dish dish, Ingredient ingredient, Double quantity_required, Unit unit) {

@@ -1,17 +1,12 @@
 package org.example.Controllers;
 
-import org.apache.coyote.BadRequestException;
+
 import org.example.DTO.DishCreateRequest;
 import org.example.DTO.DishIngredientRequest;
 import org.example.Entities.Dish;
-import org.example.Entities.DishIngredient;
-import org.example.Entities.Ingredient;
-import org.example.ExceptionHandlers.EntityNotFoundException;
-import org.example.Repositories.DishIngredientRepository;
-import org.example.Repositories.DishRepository;
 import org.example.Services.DishIngredientService;
 import org.example.Services.DishService;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,15 +14,13 @@ import java.util.List;
 @RestController
 public class DishController {
     private DishService dishService;
-    private DishIngredientRepository dishIngredientRepository;
-    private DishRepository  dishRepository;
-    public DishController(DishService dishService,  DishIngredientRepository dishIngredientRepository,  DishRepository dishRepository) {
+    private DishIngredientService dishIngredientService;
+    public DishController(DishService dishService, DishIngredientService dishIngredientService) {
         this.dishService = dishService;
-        this.dishIngredientRepository = dishIngredientRepository;
-        this.dishRepository = dishRepository;
+        this.dishIngredientService = dishIngredientService;
     }
 
-    @PutMapping("/{id}/ingredients")
+    @PutMapping("/dishes/{id}/ingredients")
     public ResponseEntity<?> updateIngredients(
             @PathVariable int id,
             @RequestBody List<DishIngredientRequest> requests) {
@@ -38,7 +31,7 @@ public class DishController {
         }
 
         try {
-            dishIngredientRepository.updateDishIngredients(id, requests);
+            dishIngredientService.updateDishIngredient(id, requests);
             return ResponseEntity.ok("Updated");
 
         } catch (RuntimeException e) {
@@ -51,7 +44,7 @@ public class DishController {
 @PostMapping("/dishes")
 public ResponseEntity<?> create(@RequestBody List<DishCreateRequest> requests) {
     try {
-        return ResponseEntity.status(201).body(dishRepository.saveAll(requests));
+        return ResponseEntity.status(201).body(dishService.saveAll(requests));
 
     }
     catch(Exception e){
@@ -69,6 +62,6 @@ public ResponseEntity<?> create(@RequestBody List<DishCreateRequest> requests) {
             @RequestParam(required = false) Double priceOver,
             @RequestParam(required = false) String name
     ) {
-        return dishRepository.findAll(priceUnder, priceOver, name);
+        return dishService.findAllDishes(priceUnder, priceOver, name);
     }
 }

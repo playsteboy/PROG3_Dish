@@ -6,7 +6,6 @@ import org.example.Data.Unit;
 
 public class StockValue {
     private Double quantity;
-    @Enumerated(EnumType.STRING)
     private Unit unit;
     public StockValue(Double quantity, Unit unit) {
         this.quantity = quantity;

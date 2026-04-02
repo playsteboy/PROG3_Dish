@@ -4,15 +4,9 @@ import jakarta.persistence.*;
 import org.example.Data.MovementTypeEnum;
 
 import java.time.Instant;
-@Entity
-@Table(name = "stockmovement")
 public class StockMovement {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Embedded
     private StockValue value;
-    @Enumerated(EnumType.STRING)
     private MovementTypeEnum type;
     private Instant creationDatetime;
 
@@ -38,6 +32,22 @@ public class StockMovement {
 
     public Instant getCreationDatetime() {
         return creationDatetime;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setValue(StockValue value) {
+        this.value = value;
+    }
+
+    public void setType(MovementTypeEnum type) {
+        this.type = type;
+    }
+
+    public void setCreationDatetime(Instant creationDatetime) {
+        this.creationDatetime = creationDatetime;
     }
 
     @Override
