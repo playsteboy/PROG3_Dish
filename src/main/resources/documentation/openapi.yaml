@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: exo2 api
-  description: discover open API
+  title: ingredients
+  description: rediscover open API
   version: 1.0.0
 servers:
   - url: http://localhost:8080
@@ -86,6 +86,7 @@ components:
       description: ingredient id
       schema:
         type: integer
+      example: 1
     DishIdParam:
       name: id
       in: path
@@ -93,6 +94,7 @@ components:
       description: dish id
       schema:
         type: integer
+      example: 1
 
 paths:
   /ingredients:
@@ -108,6 +110,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Ingredient'
+              example:
+                - id: 1
+                  name: Tomato
+                  category: VEGETABLE
+                  price: 2.5
+                - id: 2
+                  name: salad
+                  category: VEGETABLE
+                  price: 1.5
+
 
   /ingredients/{id}:
     get:
@@ -122,6 +134,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Ingredient'
+              example:
+                id: 1
+                name: Tomato
+                category: VEGETABLE
+                price: 2.5
+
         '404':
           $ref: '#/components/responses/IngredientNotFound'
 
@@ -138,12 +156,14 @@ paths:
           schema:
             type: string
             format: date-time
+          example: 2017-07-21T17:32:28Z
         - name: unit
           in: query
           required: true
           description: stock value unit
           schema:
             $ref: '#/components/schemas/Unit'
+          example: KG
       responses:
         '200':
           description: stock value found
@@ -151,6 +171,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StockValue'
+              example:
+                quantity: 5.0
+                unit: KG
+
         '404':
           $ref: '#/components/responses/IngredientNotFound'
         '400':
@@ -176,11 +200,21 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Dish'
+              example:
+                - id: 1
+                  name: Tomato soup
+                  sellingPrice: 20.0
+                  dishType: MAIN
+                  dishIngredients:
+                    - id: 2
+                      name: salad
+                      category: VEGETABLE
+                      price: 1.5
 
   /dishes/{id}/ingredients:
     put:
       summary: modify dish and ingredient list association
-      description: add or remove an association of dish and ingredient list
+      description: add or remove associations between dish and ingredients. Unknown ingredients are ignored.
       parameters:
         - $ref: '#/components/parameters/DishIdParam'
       requestBody:
@@ -192,6 +226,11 @@ paths:
               type: array
               items:
                 $ref: '#/components/schemas/Ingredient'
+            example:
+              - id: 1
+                name: Tomato
+                category: VEGETABLE
+                price: 2.5
       responses:
         '200':
           description: updated dish
@@ -199,6 +238,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Dish'
+              example:
+                id: 1
+                name: Tomato soup
+                sellingPrice: 20.0
+                dishType: MAIN
+                dishIngredients:
+                  - id: 1
+                    name: Tomato
+                    category: VEGETABLE
+                    price: 2.5
+                  - id: 2
+                    name: salad
+                    category: VEGETABLE
+                    price: 1.5
         '404':
           description: dish not found
           content:
