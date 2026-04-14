@@ -1,0 +1,226 @@
+openapi: 3.0.0
+info:
+  title: exo2 api
+  description: discover open API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+
+components:
+  schemas:
+    DishTypeEnum:
+      type: string
+      enum:
+        - STARTER
+        - MAIN
+        - DESSERT
+    Unit:
+      type: string
+      enum:
+        - PCS
+        - KG
+        - L
+    CategoryEnum:
+      type: string
+      enum:
+        - VEGETABLE
+        - ANIMAL
+        - MARINE
+        - DAIRY
+        - OTHER
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        price:
+          type: number
+          format: double
+    StockValue:
+      type: object
+      properties:
+        quantity:
+          type: number
+          format: double
+        unit:
+          $ref: '#/components/schemas/Unit'
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        sellingPrice:
+          type: number
+          format: double
+        dishType:
+          $ref: '#/components/schemas/DishTypeEnum'
+        dishIngredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
+
+
+  responses:
+    IngredientNotFound:
+      description: ingredient not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Ingredient.id={id} is not found
+
+  parameters:
+    IngredientIdParam:
+      name: id
+      in: path
+      required: true
+      description: ingredient id
+      schema:
+        type: integer
+    DishIdParam:
+      name: id
+      in: path
+      required: true
+      description: dish id
+      schema:
+        type: integer
+
+paths:
+  /ingredients:
+    get:
+      summary: get ingredient list
+      description: return saved ingredient in the database
+      responses:
+        '200':
+          description: ingredient list found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+
+  /ingredients/{id}:
+    get:
+      summary: get ingredient by id
+      description: return ingredient by its id
+      parameters:
+        - $ref: '#/components/parameters/IngredientIdParam'
+      responses:
+        '200':
+          description: ingredient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '404':
+          $ref: '#/components/responses/IngredientNotFound'
+
+  /ingredients/{id}/stock:
+    get:
+      summary: get stock value by ingredient id
+      description: return stock value of ingredient by its id
+      parameters:
+        - $ref: '#/components/parameters/IngredientIdParam'
+        - name: at
+          in: query
+          required: true
+          description: stock value creation date time
+          schema:
+            type: string
+            format: date-time
+        - name: unit
+          in: query
+          required: true
+          description: stock value unit
+          schema:
+            $ref: '#/components/schemas/Unit'
+      responses:
+        '200':
+          description: stock value found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockValue'
+        '404':
+          $ref: '#/components/responses/IngredientNotFound'
+        '400':
+          description: at or unit parameter is not provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Either mandatory query parameter `at` or `unit` is not provided.
+  /dishes:
+    get:
+      summary: get dish list
+      description: return saved dish in the database
+      responses:
+        '200':
+          description: dish list found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dish'
+
+  /dishes/{id}/ingredients:
+    put:
+      summary: modify dish and ingredient list association
+      description: add or remove an association of dish and ingredient list
+      parameters:
+        - $ref: '#/components/parameters/DishIdParam'
+      requestBody:
+        description: ingredient list to associate
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Ingredient'
+      responses:
+        '200':
+          description: updated dish
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '404':
+          description: dish not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Dish.id={id} is not found
+        '400':
+          description: ingredient list is not provided
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Request body is required
+
+
+
+
+

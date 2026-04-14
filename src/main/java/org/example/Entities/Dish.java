@@ -6,19 +6,19 @@ import java.util.List;
 
 public class Dish {
     private Integer id;
-    private Double selling_price;
+    private Double sellingPrice;
     private String name;
     private DishTypeEnum dishType;
     @JsonIgnore
     private List<DishIngredient> dishIngredients;
 
-    public Double getSelling_price() {
-        return selling_price;
+    public Double getSellingPrice() {
+        return sellingPrice;
     }
 
 
-    public void setSelling_price(Double price) {
-        this.selling_price = price;
+    public void setSellingPrice(Double price) {
+        this.sellingPrice = price;
     }
 
     @JsonIgnore
@@ -73,7 +73,7 @@ public class Dish {
     public String toString() {
         return "Dish{" +
                 "id=" + id +
-                ", price=" + selling_price +
+                ", price=" + sellingPrice +
                 ", name='" + name + '\'' +
                 ", dishType=" + dishType +
                 ", dishIngredients=" + dishIngredients +
@@ -82,9 +82,9 @@ public class Dish {
 
     @JsonIgnore
     public Double getGrossMargin() {
-        if (selling_price == null) {
+        if (sellingPrice == null) {
             throw new RuntimeException("Price is null");
         }
-        return selling_price - getDishCost();
+        return sellingPrice - getDishCost();
     }
 }

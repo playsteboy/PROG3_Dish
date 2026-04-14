@@ -1,6 +1,5 @@
 package org.example.Repositories;
 
-import org.example.Config.DataSource;
 import org.example.DTO.DishCreateRequest;
 import org.example.Data.DishTypeEnum;
 import org.example.Entities.Dish;
@@ -65,7 +64,7 @@ public List<Dish> saveAll(List<DishCreateRequest> requests) {
                     d.setId(keys.getInt(1));
                     d.setName(req.getName());
                     d.setDishType(req.getDishType());
-                    d.setSelling_price(req.getPrice());
+                    d.setSellingPrice(req.getPrice());
 
                     result.add(d);
                 }
@@ -119,7 +118,7 @@ public List<Dish> saveAll(List<DishCreateRequest> requests) {
                 d.setId(rs.getInt("id"));
                 d.setName(rs.getString("name"));
                 d.setDishType(DishTypeEnum.valueOf(rs.getString("dish_type")));
-                d.setSelling_price(rs.getDouble("selling_price"));
+                d.setSellingPrice(rs.getDouble("selling_price"));
 
                 result.add(d);
             }
@@ -141,7 +140,7 @@ select id, name,dish_type, selling_price  from dish where id = ?
                 d.setId(rs.getInt("id"));
                 d.setName(rs.getString("name"));
                 d.setDishType(DishTypeEnum.valueOf(rs.getString("dish_type")));
-                d.setSelling_price(rs.getDouble("selling_price"));
+                d.setSellingPrice(rs.getDouble("selling_price"));
                 return Optional.of(d);
             }
             throw new NotFoundException("Dish with id " + id + " not found");

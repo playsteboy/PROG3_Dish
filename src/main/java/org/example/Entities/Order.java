@@ -24,8 +24,8 @@ public class Order {
         }
         double total = 0.0;
         for (DishOrder d : dishOrders) {
-            if (d.getDish() != null && d.getDish().getSelling_price() != null) {
-                total += d.getDish().getSelling_price() * d.getQuantity();
+            if (d.getDish() != null && d.getDish().getSellingPrice() != null) {
+                total += d.getDish().getSellingPrice() * d.getQuantity();
             }
         }
         return total;
